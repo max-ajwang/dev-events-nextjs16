@@ -4,11 +4,11 @@
 // - Caches the connection across hot reloads in development to prevent multiple connections
 // - Throws early if the MongoDB URI is missing
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // Read the MongoDB connection string from the environment.
 // Ensure this is set in your .env.local (e.g., MONGODB_URI="mongodb+srv://user:pass@cluster/db")
-const MONGODB_URI = process.env.MONGODB_URI as string | undefined;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
@@ -56,7 +56,11 @@ export async function connectToDatabase(): Promise<MongooseInstance> {
         serverSelectionTimeoutMS: 5000,
         bufferCommands: false,
       })
-      .then((mongooseInstance) => mongooseInstance);
+      .then((mongooseInstance) => mongooseInstance)
+      .catch((error) => {
+        globalCache.promise = null;
+        throw error;
+      });
   }
 
   globalCache.conn = await globalCache.promise;
