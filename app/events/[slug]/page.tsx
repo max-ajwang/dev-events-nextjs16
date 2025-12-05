@@ -1,3 +1,7 @@
+import BookEvent from '@/components/BookEvent';
+import EventCard from '@/components/EventCard';
+import { IEvent } from '@/database';
+import { getSimilarEventsBySlug } from '@/lib/actions/event.actions';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
@@ -30,12 +34,14 @@ const EventAgenda = ({ agendaItems }: { agendaItems: string[] }) => (
 );
 
 const EventTags = ({ tags }: { tags: string[] }) => (
-    <div className="flex flex-row gap-1 5 flex-wrap">
-        {tags.map((tag) => (
-            <div className="pill" key={tag}>{tag}</div>
-        ))}
-    </div>
-)
+  <div className="flex flex-row gap-1 5 flex-wrap">
+    {tags.map((tag) => (
+      <div className="pill" key={tag}>
+        {tag}
+      </div>
+    ))}
+  </div>
+);
 
 const EventDetailsPage = async ({
   params,
@@ -62,6 +68,12 @@ const EventDetailsPage = async ({
   } = await request.json();
 
   if (!description) return notFound();
+
+  const bookings = 10;
+
+  const similarEvents = (await getSimilarEventsBySlug(
+    slug
+  )) as unknown as IEvent[];
 
   return (
     <section id="event">
@@ -103,18 +115,41 @@ const EventDetailsPage = async ({
             />
           </section>
 
-          <EventAgenda agendaItems={JSON.parse(agenda[0])} />
+          <EventAgenda agendaItems={agenda} />
 
           <section className="flex-col-gap-2">
             <h2>About the Organizer</h2>
             <p>{organizer}</p>
           </section>
+
+          <EventTags tags={tags} />
         </div>
 
         {/* Right side - Booking Form */}
         <aside className="booking">
-          <p className="text-lg font-semibold">Book Event</p>
+          <div className="signup-card">
+            <h2>Book Your Spot</h2>
+            {bookings > 0 ? (
+              <p className="text-sm">
+                Join {bookings} people who have already booked their spot
+              </p>
+            ) : (
+              <p>Be the first to book your spot.</p>
+            )}
+
+            <BookEvent />
+          </div>
         </aside>
+      </div>
+
+      <div className="flex w-full flex-col gap-4 pt-20">
+        <h2>Similar Events</h2>
+        <div className="events">
+          {similarEvents.length > 0 &&
+            similarEvents.map((similarEvent: IEvent) => (
+              <EventCard key={similarEvent.title} {...similarEvent} />
+            ))}
+        </div>
       </div>
     </section>
   );
