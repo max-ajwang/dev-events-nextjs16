@@ -158,8 +158,8 @@ EventSchema.pre("save", function (next) {
   next();
 });
 
-// Create index on slug for faster queries
-EventSchema.index({ slug: 1 });
+// // Create index on slug for faster queries
+// EventSchema.index({ slug: 1 });
 
 // Create and export the Event model
 // Use singleton pattern to prevent model recompilation in Next.js development
